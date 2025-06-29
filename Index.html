@@ -1,0 +1,231 @@
+<!DOCTYPE html><html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Boban Mobile Care</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    :root {
+      --bg-color: #0f2027;
+      --text-color: #ffffff;
+    }
+    body {
+      margin: 0;
+      font-family: Arial;
+      background: var(--bg-color);
+      color: var(--text-color);
+      transition: background 0.5s, color 0.5s;
+    }
+    h1 {
+      text-align: center;
+      margin-top: 20px;
+      color: #f9c411;
+    }
+    .menu-btn {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      z-index: 1000;
+      background: #f9c411;
+      border: none;
+      border-radius: 50%;
+      padding: 10px 12px;
+      font-size: 20px;
+      cursor: pointer;
+    }
+    .sidebar {
+      position: fixed;
+      top: 0;
+      right: -250px;
+      width: 250px;
+      height: 100%;
+      background: #1e1e2f;
+      padding: 20px;
+      box-shadow: -2px 0 10px rgba(0,0,0,0.4);
+      transition: right 0.3s ease;
+      z-index: 999;
+    }
+    .sidebar.open {
+      right: 0;
+    }
+    .sidebar a, .sidebar select, .sidebar button {
+      display: block;
+      color: white;
+      text-decoration: none;
+      margin-bottom: 20px;
+      font-size: 18px;
+      padding: 10px;
+      border-radius: 8px;
+      background-color: #2a2a40;
+      transition: background 0.3s;
+      width: 100%;
+    }
+    .sidebar a:hover, .sidebar select:hover, .sidebar button:hover {
+      background-color: #3e3e5c;
+    }
+    .overlay {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.6);
+      z-index: 998;
+    }
+    .overlay.show {
+      display: block;
+    }
+    .services {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 20px;
+      max-width: 1200px;
+      margin: 80px auto 40px;
+    }
+    .service-box {
+      background: linear-gradient(145deg, #ff5f6d, #ffc371);
+      padding: 20px;
+      border-radius: 20px;
+      width: 220px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.4);
+      cursor: pointer;
+      text-align: center;
+      transition: transform 0.3s, background 0.3s;
+      color: black;
+    }
+    .service-box:hover {
+      transform: scale(1.05);
+      background: linear-gradient(145deg, #36d1dc, #5b86e5);
+    }
+    .service-box i {
+      font-size: 36px;
+      margin-bottom: 10px;
+      color: #fff;
+    }
+    .popup-overlay {
+      display: none;
+      position: fixed;
+      top: 0; left: 0;
+      width: 100vw; height: 100vh;
+      background: rgba(0, 0, 0, 0.7);
+      justify-content: center;
+      align-items: center;
+      z-index: 9999;
+    }
+    .popup {
+      background: #fff;
+      color: #000;
+      padding: 20px;
+      border-radius: 10px;
+      max-width: 400px;
+      width: 80%;
+      text-align: center;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+    }
+  </style>
+</head>
+<body>
+  <h1>Boban Mobile Care</h1>
+  <div class="overlay" id="overlay" onclick="closeMenu()"></div>
+  <button class="menu-btn" onclick="toggleMenu(event)">☰</button>
+  <div class="sidebar" id="sidebar">
+    <a href="#" onclick="showPopup('About Us','Welcome to Boban Mobile Care - your trusted mobile repair solution.')">ℹ️ About</a>
+    <a href="#" onclick="showPopup('Contact','📞 7347587778')">📞 Call Us</a>
+    <button onclick="window.location.href='https://wa.me/917347587778'">💬 WhatsApp</button>
+    <label for="lang">🌐 Language</label>
+    <select id="lang" onchange="changeLang(this.value)">
+      <option value="en">English</option>
+      <option value="pa">ਪੰਜਾਬੀ</option>
+    </select>
+  </div>  <section id="services" class="services"></section>  <div class="popup-overlay" id="popupOverlay">
+    <div class="popup" id="popupBox">
+      <h3 id="popupTitle"></h3>
+      <p id="popupDesc"></p>
+      <button onclick="closePopup()">Close</button>
+    </div>
+  </div>  <script>
+    const servicesList = [
+      { icon: 'fa-lock-open', title: 'FRP Unlock', desc: 'Remove Google account lock.' },
+      { icon: 'fa-mobile-alt', title: 'Screen Replacement', desc: 'Fix broken or damaged screens.' },
+      { icon: 'fa-download', title: 'Phone Flash', desc: 'Reinstall phone firmware.' },
+      { icon: 'fa-battery-full', title: 'Battery Replace', desc: 'New battery installation.' },
+      { icon: 'fa-cogs', title: 'Software Update', desc: 'Upgrade to latest OS.' },
+      { icon: 'fa-bug', title: 'Hardware Tracing', desc: 'Find and fix hardware issues.' },
+      { icon: 'fa-tools', title: 'Repair & Service', desc: 'General repair services.' },
+      { icon: 'fa-wifi', title: 'Network Unlock', desc: 'Unlock SIM restrictions.' },
+      { icon: 'fa-camera', title: 'Camera Repair', desc: 'Fix front/back camera issues.' },
+      { icon: 'fa-gamepad', title: 'Accessories', desc: 'Chargers, covers, and more.' },
+      { icon: 'fa-key', title: 'Pattern Unlock', desc: 'Bypass screen lock pattern.' },
+      { icon: 'fa-info-circle', title: 'Mobile Info Read', desc: 'Read IMEI, model, and more.' },
+      { icon: 'fa-sync', title: 'Data Backup', desc: 'Backup important phone data.' },
+      { icon: 'fa-microchip', title: 'IC Repair', desc: 'Fix IC level faults.' },
+      { icon: 'fa-sd-card', title: 'Memory Upgrade', desc: 'Increase device storage.' },
+      { icon: 'fa-volume-up', title: 'Speaker Repair', desc: 'Fix speaker/audio issues.' },
+      { icon: 'fa-microphone', title: 'Mic Repair', desc: 'Fix microphone problems.' },
+      { icon: 'fa-sim-card', title: 'SIM Slot Fix', desc: 'Repair SIM card slot.' },
+      { icon: 'fa-usb', title: 'Charging Port', desc: 'Fix charging port issues.' },
+      { icon: 'fa-phone', title: 'Full Body Repair', desc: 'Repair full body and frame.' }
+    ];
+    const translations = {
+      en: {},
+      pa: {
+        'FRP Unlock': 'FRP ਅਣਲੌਕ',
+        'Screen Replacement': 'ਸਕਰੀਨ ਬਦਲੋ',
+        'Phone Flash': 'ਫੋਨ ਫਲੈਸ਼',
+        'Battery Replace': 'ਬੈਟਰੀ ਬਦਲੋ',
+        'Software Update': 'ਸਾਫਟਵੇਅਰ ਅੱਪਡੇਟ',
+        'Hardware Tracing': 'ਹਾਰਡਵੇਅਰ ਟਰੇਸਿੰਗ',
+        'Repair & Service': 'ਮੁਰੰਮਤ ਅਤੇ ਸੇਵਾ',
+        'Network Unlock': 'ਨੈਟਵਰਕ ਅਣਲੌਕ',
+        'Camera Repair': 'ਕੈਮਰਾ ਮੁਰੰਮਤ',
+        'Accessories': 'ਐਕਸੈਸਰੀਜ਼',
+        'Pattern Unlock': 'ਪੈਟਰਨ ਅਣਲੌਕ',
+        'Mobile Info Read': 'ਮੋਬਾਈਲ ਜਾਣਕਾਰੀ ਪੜ੍ਹੋ',
+        'Data Backup': 'ਡਾਟਾ ਬੈਕਅੱਪ',
+        'IC Repair': 'IC ਮੁਰੰਮਤ',
+        'Memory Upgrade': 'ਮੈਮੋਰੀ ਅੱਪਗ੍ਰੇਡ',
+        'Speaker Repair': 'ਸਪੀਕਰ ਮੁਰੰਮਤ',
+        'Mic Repair': 'ਮਾਈਕ ਮੁਰੰਮਤ',
+        'SIM Slot Fix': 'SIM ਸਲੌਟ ਮੁਰੰਮਤ',
+        'Charging Port': 'ਚਾਰਜਿੰਗ ਪੋਰਟ',
+        'Full Body Repair': 'ਫੁੱਲ ਬਾਡੀ ਮੁਰੰਮਤ'
+      }
+    };
+    const serviceSection = document.getElementById('services');
+    function loadServices(lang = 'en') {
+      serviceSection.innerHTML = '';
+      servicesList.forEach(service => {
+        const title = translations[lang][service.title] || service.title;
+        const div = document.createElement('div');
+        div.className = 'service-box';
+        div.innerHTML = `<i class="fas ${service.icon}"></i><h4>${title}</h4>`;
+        div.onclick = () => showPopup(title, service.desc);
+        serviceSection.appendChild(div);
+      });
+    }
+    loadServices();
+
+    function toggleMenu(e) {
+      e.stopPropagation();
+      sidebar.classList.toggle('open');
+      overlay.classList.toggle('show');
+    }
+    function closeMenu() {
+      sidebar.classList.remove('open');
+      overlay.classList.remove('show');
+    }
+    function showPopup(title, desc) {
+      document.getElementById('popupTitle').innerText = title;
+      document.getElementById('popupDesc').innerText = desc;
+      document.getElementById('popupOverlay').style.display = 'flex';
+    }
+    function closePopup() {
+      document.getElementById('popupOverlay').style.display = 'none';
+    }
+    function changeLang(lang) {
+      loadServices(lang);
+    }
+  </script></body>
+</html>
